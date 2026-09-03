@@ -9,6 +9,7 @@ export const STATUS_CONFIG = {
   completed: { label: "Completed", accent: "green" },
   failed: { label: "Failed", accent: "red" },
   rejected: { label: "Rejected", accent: "gray" },
+  expired: { label: "Expired — not approved in time", accent: "gray" },
 };
 
 export function statusFor(status) {

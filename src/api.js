@@ -5,15 +5,28 @@
 export const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "https://print-kiosk-backend-t470.onrender.com";
 
-export async function apiFetch(path, { method = "GET", body, token } = {}) {
+/**
+ * @param {object} [options.onSlow] - called if the request takes longer than
+ *   4s, most likely because the Render free-tier backend is waking up from
+ *   sleep. Callers use this to show a "waking up..." notice instead of
+ *   leaving the user staring at a stuck spinner with no explanation.
+ */
+export async function apiFetch(path, { method = "GET", body, token, onSlow } = {}) {
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${BACKEND_URL}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const slowTimer = onSlow ? setTimeout(onSlow, 4000) : null;
+
+  let res;
+  try {
+    res = await fetch(`${BACKEND_URL}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } finally {
+    if (slowTimer) clearTimeout(slowTimer);
+  }
 
   let data = null;
   try {

@@ -575,3 +575,13 @@ input[type="password"]:focus {
   background: var(--red-50);
   border-color: var(--red-600);
 }
+
+.wake-banner {
+  background: var(--indigo-50);
+  color: var(--indigo-700);
+  font-size: 12.5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin: 14px 18px 0;
+  line-height: 1.4;
+}

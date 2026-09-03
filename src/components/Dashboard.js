@@ -8,12 +8,13 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [allOrders, setAllOrders] = useState([]); // full history, used for stats + history tab
   const [loading, setLoading] = useState(true);
+  const [waking, setWaking] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
 
   const handleAuthError = useCallback(
     (err) => {
       if (err.status === 401 || err.status === 403) {
-        onAuthExpired("Session expire ho gaya, dobara login karein.");
+        onAuthExpired("Your session has expired. Please log in again.");
         return true;
       }
       return false;
@@ -21,29 +22,46 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
     [onAuthExpired]
   );
 
-  const fetchPending = useCallback(async () => {
-    try {
-      const data = await apiFetch(`/orders/awaiting-approval?shopId=${auth.shopId}`, {
-        token: auth.token,
-      });
-      setPendingOrders(data);
-    } catch (err) {
-      if (!handleAuthError(err)) console.error("Failed to fetch pending orders", err);
-    }
-  }, [auth.shopId, auth.token, handleAuthError]);
+  const fetchPending = useCallback(
+    async (options = {}) => {
+      try {
+        const data = await apiFetch(`/orders/awaiting-approval?shopId=${auth.shopId}`, {
+          token: auth.token,
+          onSlow: options.onSlow,
+        });
+        setPendingOrders(data);
+      } catch (err) {
+        if (!handleAuthError(err)) console.error("Failed to fetch pending orders", err);
+      }
+    },
+    [auth.shopId, auth.token, handleAuthError]
+  );
 
-  const fetchAllOrders = useCallback(async () => {
-    try {
-      const data = await apiFetch(`/orders?shopId=${auth.shopId}`, { token: auth.token });
-      setAllOrders(data);
-    } catch (err) {
-      if (!handleAuthError(err)) console.error("Failed to fetch order history", err);
-    }
-  }, [auth.shopId, auth.token, handleAuthError]);
+  const fetchAllOrders = useCallback(
+    async (options = {}) => {
+      try {
+        const data = await apiFetch(`/orders?shopId=${auth.shopId}`, {
+          token: auth.token,
+          onSlow: options.onSlow,
+        });
+        setAllOrders(data);
+      } catch (err) {
+        if (!handleAuthError(err)) console.error("Failed to fetch order history", err);
+      }
+    },
+    [auth.shopId, auth.token, handleAuthError]
+  );
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchPending(), fetchAllOrders()]).finally(() => setLoading(false));
+    setWaking(false);
+    // Only the very first load gets the "waking up" notice — by the time
+    // the 5s poll below kicks in, the backend is already awake.
+    const onSlow = () => setWaking(true);
+    Promise.all([fetchPending({ onSlow }), fetchAllOrders({ onSlow })]).finally(() => {
+      setLoading(false);
+      setWaking(false);
+    });
 
     const interval = setInterval(() => {
       fetchPending();
@@ -70,7 +88,7 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
       await apiFetch(`/orders/${orderId}/reject`, {
         method: "POST",
         token: auth.token,
-        body: { reason: "Shop owner ne reject kiya" },
+        body: { reason: "Rejected by shop owner" },
       });
       await Promise.all([fetchPending(), fetchAllOrders()]);
     } catch (err) {
@@ -116,6 +134,12 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
         </button>
       </header>
 
+      {waking && (
+        <p className="wake-banner">
+          Waking up the server — this can take up to a minute after a period of inactivity. Please hang on.
+        </p>
+      )}
+
       <div className="stats-strip">
         <div className="stat-seg">
           <span className="stat-value">{pendingOrders.length}</span>
@@ -146,7 +170,7 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
       {!loading && tab === "pending" && (
         <div className="ticket-list">
           {pendingOrders.length === 0 && (
-            <p className="empty-state">Koi naya request nahi hai — jab customer order karega, yahan turant dikhega.</p>
+            <p className="empty-state">No new requests yet — new orders will appear here as soon as a customer submits one.</p>
           )}
           {pendingOrders.map((order) => (
             <OrderCard
@@ -164,7 +188,7 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
       {!loading && tab === "history" && (
         <div className="ticket-list">
           {historyOrders.length === 0 && (
-            <p className="empty-state">Abhi tak koi order complete nahi hua hai.</p>
+            <p className="empty-state">No completed orders yet.</p>
           )}
           {historyOrders.map((order) => (
             <OrderCard key={order._id} order={order} mode="history" />

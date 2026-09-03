@@ -51,7 +51,7 @@ function App() {
     clearStoredAuth();
     setAuth(null);
     setScreen("dashboard");
-    setLoginNotice(`Shop ID update ho gaya: "${newShopId}". Isi naye ID se dobara login karein.`);
+    setLoginNotice(`Shop ID updated to "${newShopId}". Please log in again with your new Shop ID.`);
     setPrefillShopId(newShopId);
   }
 

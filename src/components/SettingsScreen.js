@@ -21,11 +21,11 @@ export default function SettingsScreen({ auth, onBack, onLogout, onShopIdChanged
     setPinSuccess(null);
 
     if (!/^\d{4,6}$/.test(newPin)) {
-      setPinError("Naya PIN 4-6 digit ka number hona chahiye");
+      setPinError("New PIN must be a 4-6 digit number.");
       return;
     }
     if (newPin !== confirmPin) {
-      setPinError("Naya PIN aur confirm PIN match nahi kar rahe");
+      setPinError("New PIN and confirm PIN do not match.");
       return;
     }
 
@@ -36,16 +36,16 @@ export default function SettingsScreen({ auth, onBack, onLogout, onShopIdChanged
         token: auth.token,
         body: { oldPin, newPin },
       });
-      setPinSuccess("PIN change ho gaya.");
+      setPinSuccess("PIN updated successfully.");
       setOldPin("");
       setNewPin("");
       setConfirmPin("");
     } catch (err) {
       if (err.status === 401 || err.status === 403) {
-        onLogout("Session expire ho gaya, dobara login karein.");
+        onLogout("Your session has expired. Please log in again.");
         return;
       }
-      setPinError(err.message || "PIN change fail hua");
+      setPinError(err.message || "Failed to update PIN. Please try again.");
     } finally {
       setPinSaving(false);
     }
@@ -57,7 +57,7 @@ export default function SettingsScreen({ auth, onBack, onLogout, onShopIdChanged
 
     const trimmed = newShopId.trim().toLowerCase();
     if (!/^[a-z0-9-]{3,40}$/.test(trimmed)) {
-      setShopIdError("Sirf lowercase letters, numbers, hyphens allowed (kam se kam 3 characters)");
+      setShopIdError("Only lowercase letters, numbers, and hyphens are allowed (minimum 3 characters).");
       return;
     }
 
@@ -71,10 +71,10 @@ export default function SettingsScreen({ auth, onBack, onLogout, onShopIdChanged
       onShopIdChanged(trimmed);
     } catch (err) {
       if (err.status === 401 || err.status === 403) {
-        onLogout("Session expire ho gaya, dobara login karein.");
+        onLogout("Your session has expired. Please log in again.");
         return;
       }
-      setShopIdError(err.message || "Shop ID change fail hua");
+      setShopIdError(err.message || "Failed to update Shop ID. Please try again.");
     } finally {
       setShopIdSaving(false);
     }
@@ -93,7 +93,7 @@ export default function SettingsScreen({ auth, onBack, onLogout, onShopIdChanged
 
       <section className="settings-panel">
         <h2>Change PIN</h2>
-        <p className="settings-panel-hint">Dashboard login ke liye naya PIN set karein.</p>
+        <p className="settings-panel-hint">Set a new PIN for dashboard login.</p>
         <form onSubmit={handleChangePin}>
           <label className="field-label" htmlFor="oldPin">Current PIN</label>
           <input
@@ -135,8 +135,8 @@ export default function SettingsScreen({ auth, onBack, onLogout, onShopIdChanged
       <section className="settings-panel">
         <h2>Change Shop ID</h2>
         <p className="settings-panel-hint">
-          Current Shop ID: <code>{auth.shopId}</code>. Ise badalne se aapka purana QR code kaam
-          karna band kar dega — naya QR Admin se dobara download karna hoga.
+          Current Shop ID: <code>{auth.shopId}</code>. Changing this will stop your old QR code
+          from working — you'll need to download a new one from the Admin Dashboard.
         </p>
         <form onSubmit={handleChangeShopId}>
           <label className="field-label" htmlFor="newShopId">New Shop ID</label>

@@ -6,27 +6,31 @@ export default function LoginScreen({ onLoginSuccess, notice, prefillShopId }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [waking, setWaking] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
 
     if (!shopId.trim() || !pin.trim()) {
-      setError("Shop ID aur PIN dono daalein");
+      setError("Please enter both your Shop ID and PIN.");
       return;
     }
 
     setLoading(true);
+    setWaking(false);
     try {
       const data = await apiFetch("/shops/login", {
         method: "POST",
         body: { shopId: shopId.trim(), pin: pin.trim() },
+        onSlow: () => setWaking(true),
       });
       onLoginSuccess(data);
     } catch (err) {
-      setError(err.message || "Login fail hua");
+      setError(err.message || "Login failed. Please check your Shop ID and PIN.");
     } finally {
       setLoading(false);
+      setWaking(false);
     }
   }
 
@@ -45,9 +49,14 @@ export default function LoginScreen({ onLoginSuccess, notice, prefillShopId }) {
         </div>
 
         <h1>Shop dashboard</h1>
-        <p className="auth-subtitle">Apne Shop ID aur PIN se login karein</p>
+        <p className="auth-subtitle">Log in with your Shop ID and PIN</p>
 
         {notice && <div className="auth-notice">{notice}</div>}
+        {waking && (
+          <div className="auth-notice">
+            Waking up the server — this can take up to a minute after a period of inactivity. Please hang on.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <label className="field-label" htmlFor="shopId">Shop ID</label>
@@ -74,12 +83,12 @@ export default function LoginScreen({ onLoginSuccess, notice, prefillShopId }) {
           {error && <p className="error-text">{error}</p>}
 
           <button type="submit" className="btn-primary btn-block" disabled={loading}>
-            {loading ? "Login ho raha hai..." : "Log in"}
+            {loading ? "Logging in..." : "Log in"}
           </button>
         </form>
 
         <p className="auth-help">
-          PIN bhool gaye? PrintKaro se contact karein — wo dashboard se reset kar denge.
+          Forgot your PIN? Contact PrintKaro support — they can reset it from the admin dashboard.
         </p>
       </div>
     </div>
