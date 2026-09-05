@@ -3,6 +3,17 @@ import { apiFetch } from "../api";
 import { isToday } from "../statusConfig";
 import OrderCard from "./OrderCard";
 
+function SkeletonTicket() {
+  return (
+    <div className="skeleton-ticket" aria-hidden="true">
+      <div className="skeleton-bar" style={{ width: "40%", height: 14, marginBottom: 10 }} />
+      <div className="skeleton-bar" style={{ width: "100%", height: 36, marginBottom: 8, borderRadius: 8 }} />
+      <div className="skeleton-bar" style={{ width: "100%", height: 36, marginBottom: 12, borderRadius: 8 }} />
+      <div className="skeleton-bar" style={{ width: "100%", height: 34, borderRadius: 8 }} />
+    </div>
+  );
+}
+
 export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
   const [tab, setTab] = useState("pending"); // "pending" | "history"
   const [pendingOrders, setPendingOrders] = useState([]);
@@ -165,7 +176,12 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
         </button>
       </div>
 
-      {loading && <p className="loading-text">Loading...</p>}
+      {loading && (
+        <div className="ticket-list">
+          <SkeletonTicket />
+          <SkeletonTicket />
+        </div>
+      )}
 
       {!loading && tab === "pending" && (
         <div className="ticket-list">

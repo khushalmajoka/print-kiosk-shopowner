@@ -351,6 +351,25 @@ input[type="password"]:focus {
   line-height: 1.5;
 }
 
+.skeleton-ticket {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.skeleton-bar {
+  background: linear-gradient(90deg, var(--gray-50) 25%, var(--border) 37%, var(--gray-50) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
 .empty-state-wrap {
   display: flex;
   flex-direction: column;
@@ -389,6 +408,18 @@ input[type="password"]:focus {
   border-left: 4px solid var(--gray-600);
   border-radius: 10px;
   padding: 14px 16px;
+  transition: box-shadow var(--duration-base) var(--ease-standard), transform var(--duration-base) var(--ease-standard);
+  animation: ticket-in var(--duration-base) var(--ease-standard);
+}
+
+.ticket:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+@keyframes ticket-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .ticket.accent-amber { border-left-color: var(--amber-600); }
@@ -479,6 +510,12 @@ input[type="password"]:focus {
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+}
+
+.btn-approve:active:not(:disabled),
+.btn-reject:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .btn-approve {
@@ -486,9 +523,17 @@ input[type="password"]:focus {
   color: white;
 }
 
+.btn-approve:hover:not(:disabled) {
+  background: #12692f;
+}
+
 .btn-reject {
   background: var(--red-50);
   color: var(--red-600);
+}
+
+.btn-reject:hover:not(:disabled) {
+  background: #fde2e2;
 }
 
 .btn-approve:disabled,
