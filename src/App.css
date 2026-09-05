@@ -1,27 +1,7 @@
-:root {
-  --indigo-600: #4338ca;
-  --indigo-700: #3730a3;
-  --indigo-50: #eef0fd;
-
-  --ink-900: #0f172a;
-  --ink-600: #475569;
-  --ink-400: #94a3b8;
-
-  --paper: #f5f6fa;
-  --surface: #ffffff;
-  --border: #e3e5ee;
-
-  --green-600: #15803d;
-  --green-50: #effaf3;
-  --red-600: #dc2626;
-  --red-50: #fef1f1;
-  --amber-600: #d97706;
-  --amber-50: #fef6e7;
-  --blue-600: #2563eb;
-  --blue-50: #eef4ff;
-  --gray-600: #64748b;
-  --gray-50: #f1f2f6;
-}
+/* Color, type, spacing, radius, and shadow tokens now live in
+   design-tokens.css (imported via index.css) — the :root block that used
+   to be here has moved there so all three PrintKaro apps share one
+   source of truth instead of each defining their own copy. */
 
 * {
   box-sizing: border-box;
@@ -574,14 +554,4 @@ input[type="password"]:focus {
 .btn-logout:hover {
   background: var(--red-50);
   border-color: var(--red-600);
-}
-
-.wake-banner {
-  background: var(--indigo-50);
-  color: var(--indigo-700);
-  font-size: 12.5px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  margin: 14px 18px 0;
-  line-height: 1.4;
 }
