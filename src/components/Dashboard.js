@@ -170,7 +170,15 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
       {!loading && tab === "pending" && (
         <div className="ticket-list">
           {pendingOrders.length === 0 && (
-            <p className="empty-state">No new requests yet — new orders will appear here as soon as a customer submits one.</p>
+            <div className="empty-state-wrap">
+              <div className="empty-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+                  <path d="M4 13l2.5-7A2 2 0 018.4 4.5h7.2a2 2 0 011.9 1.5L20 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4 13v4a2 2 0 002 2h12a2 2 0 002-2v-4h-4.5a1 1 0 00-.9.55L14 15h-4l-.6-1.45a1 1 0 00-.9-.55H4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <p className="empty-state">No new requests yet — new orders will appear here as soon as a customer submits one.</p>
+            </div>
           )}
           {pendingOrders.map((order) => (
             <OrderCard
@@ -188,7 +196,15 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired }) {
       {!loading && tab === "history" && (
         <div className="ticket-list">
           {historyOrders.length === 0 && (
-            <p className="empty-state">No completed orders yet.</p>
+            <div className="empty-state-wrap">
+              <div className="empty-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+                  <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M12 8v4l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <p className="empty-state">No completed orders yet.</p>
+            </div>
           )}
           {historyOrders.map((order) => (
             <OrderCard key={order._id} order={order} mode="history" />
