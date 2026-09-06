@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import LoginScreen from "./components/LoginScreen";
 import Dashboard from "./components/Dashboard";
@@ -24,11 +24,29 @@ function clearStoredAuth() {
   localStorage.removeItem("printkaro_shop_name");
 }
 
+function loadStoredTheme() {
+  const stored = localStorage.getItem("printkaro_theme");
+  if (stored === "light" || stored === "dark") return stored;
+  // No saved preference yet — default to whatever the OS/browser prefers.
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
 function App() {
   const [auth, setAuth] = useState(loadStoredAuth);
   const [screen, setScreen] = useState("dashboard"); // "dashboard" | "settings"
   const [loginNotice, setLoginNotice] = useState(null);
   const [prefillShopId, setPrefillShopId] = useState(null);
+  const [theme, setTheme] = useState(loadStoredTheme);
+
+  useEffect(() => {
+    localStorage.setItem("printkaro_theme", theme);
+  }, [theme]);
+
+  function toggleTheme() {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  }
 
   function handleLoginSuccess(data) {
     const nextAuth = { token: data.token, shopId: data.shopId, shopName: data.shopName };
@@ -55,18 +73,17 @@ function App() {
     setPrefillShopId(newShopId);
   }
 
+  let content;
   if (!auth) {
-    return (
+    content = (
       <LoginScreen
         onLoginSuccess={handleLoginSuccess}
         notice={loginNotice}
         prefillShopId={prefillShopId}
       />
     );
-  }
-
-  if (screen === "settings") {
-    return (
+  } else if (screen === "settings") {
+    content = (
       <SettingsScreen
         auth={auth}
         onBack={() => setScreen("dashboard")}
@@ -74,15 +91,22 @@ function App() {
         onShopIdChanged={handleShopIdChanged}
       />
     );
+  } else {
+    content = (
+      <Dashboard
+        auth={auth}
+        onOpenSettings={() => setScreen("settings")}
+        onAuthExpired={handleLogout}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+    );
   }
 
-  return (
-    <Dashboard
-      auth={auth}
-      onOpenSettings={() => setScreen("settings")}
-      onAuthExpired={handleLogout}
-    />
-  );
+  // data-theme is set here, at the very top, so every screen (including
+  // Login and Settings) picks up the right palette — the design tokens'
+  // dark overrides key off this exact attribute.
+  return <div data-theme={theme} className="app-root">{content}</div>;
 }
 
 export default App;

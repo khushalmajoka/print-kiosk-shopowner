@@ -7,6 +7,12 @@
   box-sizing: border-box;
 }
 
+.app-root {
+  min-height: 100vh;
+  background: var(--paper);
+  transition: background var(--duration-base) var(--ease-standard);
+}
+
 body {
   margin: 0;
   background: var(--paper);
@@ -246,11 +252,17 @@ input[type="password"]:focus {
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
+  transition: background var(--duration-base) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
 }
 
 .icon-btn:hover {
   border-color: var(--indigo-600);
   color: var(--indigo-600);
+}
+
+.topbar-actions {
+  display: flex;
+  gap: var(--space-2);
 }
 
 /* ---------------- Stats strip ---------------- */
@@ -524,7 +536,7 @@ input[type="password"]:focus {
 }
 
 .btn-approve:hover:not(:disabled) {
-  background: #12692f;
+  background: var(--green-700);
 }
 
 .btn-reject {
@@ -533,7 +545,7 @@ input[type="password"]:focus {
 }
 
 .btn-reject:hover:not(:disabled) {
-  background: #fde2e2;
+  background: var(--red-100);
 }
 
 .btn-approve:disabled,
