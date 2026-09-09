@@ -3,6 +3,13 @@ import "./App.css";
 import LoginScreen from "./components/LoginScreen";
 import Dashboard from "./components/Dashboard";
 import SettingsScreen from "./components/SettingsScreen";
+import { refreshShopToken } from "./api";
+
+// How often to silently renew the session token while the dashboard is
+// open. Well under the 7-day token expiry, so as long as the shopkeeper's
+// PC is turned on and the tab is open at least this often, they're never
+// logged out mid-use.
+const TOKEN_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 hours
 
 function loadStoredAuth() {
   const token = localStorage.getItem("printkaro_shop_token");
@@ -43,6 +50,30 @@ function App() {
   useEffect(() => {
     localStorage.setItem("printkaro_theme", theme);
   }, [theme]);
+
+  // Silently renew the session token on a timer while logged in. If the
+  // refresh itself fails because the token has already expired (e.g. the
+  // PC was off for a week), the next real API call will get a 401 and
+  // fall back to the normal "please log in again" flow — this doesn't
+  // need its own error handling beyond not crashing.
+  useEffect(() => {
+    if (!auth) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const data = await refreshShopToken(auth.token);
+        const nextAuth = { ...auth, token: data.token };
+        persistAuth(nextAuth);
+        setAuth(nextAuth);
+      } catch (e) {
+        // Token already expired or refresh failed — leave it to the next
+        // authenticated request to trigger the normal re-login flow.
+      }
+    }, TOKEN_REFRESH_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth?.token]);
 
   function toggleTheme() {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));

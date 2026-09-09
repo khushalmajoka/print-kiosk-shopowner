@@ -1,7 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { apiFetch } from "../api";
 import { isToday } from "../statusConfig";
 import OrderCard from "./OrderCard";
+
+// How many consecutive failed poll cycles (5s apart) before showing the
+// "can't reach the server" banner — a couple of blips shouldn't alarm
+// anyone, but ~15 seconds of consistent failure means something's actually wrong.
+const CONNECTION_LOST_THRESHOLD = 3;
 
 function SkeletonTicket() {
   return (
@@ -20,6 +25,8 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired, theme, 
   const [allOrders, setAllOrders] = useState([]); // full history, used for stats + history tab
   const [loading, setLoading] = useState(true);
   const [waking, setWaking] = useState(false);
+  const [connectionLost, setConnectionLost] = useState(false);
+  const consecutiveFailuresRef = useRef(0);
   const [actionLoading, setActionLoading] = useState(null);
 
   const handleAuthError = useCallback(
@@ -41,8 +48,10 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired, theme, 
           onSlow: options.onSlow,
         });
         setPendingOrders(data);
+        return true;
       } catch (err) {
         if (!handleAuthError(err)) console.error("Failed to fetch pending orders", err);
+        return false;
       }
     },
     [auth.shopId, auth.token, handleAuthError]
@@ -56,8 +65,10 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired, theme, 
           onSlow: options.onSlow,
         });
         setAllOrders(data);
+        return true;
       } catch (err) {
         if (!handleAuthError(err)) console.error("Failed to fetch order history", err);
+        return false;
       }
     },
     [auth.shopId, auth.token, handleAuthError]
@@ -74,9 +85,17 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired, theme, 
       setWaking(false);
     });
 
-    const interval = setInterval(() => {
-      fetchPending();
-      fetchAllOrders();
+    const interval = setInterval(async () => {
+      const [pendingOk, allOk] = await Promise.all([fetchPending(), fetchAllOrders()]);
+      if (pendingOk && allOk) {
+        consecutiveFailuresRef.current = 0;
+        setConnectionLost(false);
+      } else {
+        consecutiveFailuresRef.current += 1;
+        if (consecutiveFailuresRef.current >= CONNECTION_LOST_THRESHOLD) {
+          setConnectionLost(true);
+        }
+      }
     }, 5000);
     return () => clearInterval(interval);
   }, [fetchPending, fetchAllOrders]);
@@ -166,6 +185,12 @@ export default function Dashboard({ auth, onOpenSettings, onAuthExpired, theme, 
       {waking && (
         <p className="wake-banner">
           Waking up the server — this can take up to a minute after a period of inactivity. Please hang on.
+        </p>
+      )}
+
+      {connectionLost && (
+        <p className="connection-lost-banner">
+          Can't reach the server — orders shown here may be out of date. Retrying automatically...
         </p>
       )}
 

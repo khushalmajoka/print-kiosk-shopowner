@@ -43,3 +43,13 @@ export async function apiFetch(path, { method = "GET", body, token, onSlow } = {
 
   return data;
 }
+
+/**
+ * Exchanges the current (still-valid) token for a fresh one with a new
+ * 7-day expiry — see App.js, which calls this periodically while the
+ * shopkeeper is actively using the dashboard, so their session renews
+ * itself instead of ever hitting the expiry while they're mid-use.
+ */
+export async function refreshShopToken(token) {
+  return apiFetch("/shops/refresh-token", { method: "POST", token });
+}
